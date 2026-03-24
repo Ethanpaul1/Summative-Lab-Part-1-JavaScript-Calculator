@@ -2,6 +2,12 @@ const readline = require("readline");
 
 const calculationHistory = [];
 
+function validateOperands(firstNumber, secondNumber) {
+  if (!Number.isFinite(firstNumber) || !Number.isFinite(secondNumber)) {
+    throw new TypeError("Both operands must be valid numbers.");
+  }
+}
+
 function addToHistory(firstNumber, secondNumber, operator, result) {
   calculationHistory.push({
     operands: [firstNumber, secondNumber],
@@ -11,26 +17,31 @@ function addToHistory(firstNumber, secondNumber, operator, result) {
 }
 
 function add(firstNumber, secondNumber) {
+  validateOperands(firstNumber, secondNumber);
   const result = firstNumber + secondNumber;
   addToHistory(firstNumber, secondNumber, "+", result);
   return result;
 }
 
 function subtract(firstNumber, secondNumber) {
+  validateOperands(firstNumber, secondNumber);
   const result = firstNumber - secondNumber;
   addToHistory(firstNumber, secondNumber, "-", result);
   return result;
 }
 
 function multiply(firstNumber, secondNumber) {
+  validateOperands(firstNumber, secondNumber);
   const result = firstNumber * secondNumber;
   addToHistory(firstNumber, secondNumber, "*", result);
   return result;
 }
 
 function divide(firstNumber, secondNumber) {
+  validateOperands(firstNumber, secondNumber);
+
   if (secondNumber === 0) {
-    return "Error: Division by zero is not allowed.";
+    throw new RangeError("Division by zero is not allowed.");
   }
 
   const result = firstNumber / secondNumber;
@@ -40,18 +51,19 @@ function divide(firstNumber, secondNumber) {
 
 function displayHistory() {
   if (calculationHistory.length === 0) {
-    console.log("No calculations stored yet.");
-    return;
+    const emptyMessage = "No calculations stored yet.";
+    console.log(emptyMessage);
+    return emptyMessage;
   }
 
-  console.log("\nCalculation History:");
-
-  calculationHistory.forEach((entry, index) => {
+  const historyLines = calculationHistory.map((entry, index) => {
     const [firstNumber, secondNumber] = entry.operands;
-    console.log(
-      `${index + 1}. ${firstNumber} ${entry.operator} ${secondNumber} = ${entry.result}`
-    );
+    return `${index + 1}. ${firstNumber} ${entry.operator} ${secondNumber} = ${entry.result}`;
   });
+
+  const historyOutput = ["Calculation History:", ...historyLines].join("\n");
+  console.log(`\n${historyOutput}`);
+  return historyOutput;
 }
 
 function showMenu() {
@@ -87,8 +99,12 @@ async function handleCalculation(reader, operation) {
   const firstNumber = await getNumberInput(reader, "Enter the first number: ");
   const secondNumber = await getNumberInput(reader, "Enter the second number: ");
 
-  const result = operation(firstNumber, secondNumber);
-  console.log(`Result: ${result}`);
+  try {
+    const result = operation(firstNumber, secondNumber);
+    console.log(`Result: ${result}`);
+  } catch (error) {
+    console.log(`Error: ${error.message}`);
+  }
 }
 
 async function runCalculator() {
@@ -139,6 +155,7 @@ module.exports = {
   divide,
   displayHistory,
   addToHistory,
+  validateOperands,
   runCalculator,
 };
 
